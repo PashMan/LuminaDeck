@@ -147,48 +147,48 @@ export const DeckDetailModal: React.FC<DeckDetailModalProps> = ({
 
         {/* Manual Add Card Form */}
         {showAddCardForm && (
-          <form onSubmit={handleAddManualCard} className="p-4 rounded-2xl bg-slate-800/80 border border-indigo-500/30 space-y-3 mb-4 text-xs">
-            <h4 className="font-bold text-indigo-300">Create Custom Card</h4>
+          <form onSubmit={handleAddManualCard} className="p-4 rounded-2xl bg-indigo-50/60 border border-indigo-100 space-y-3 mb-4 text-xs">
+            <h4 className="font-bold text-[#24389c]">Create Custom Card</h4>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div>
-                <label className="block text-[11px] text-slate-400 mb-1">Question / Prompt</label>
+                <label className="block text-[11px] font-semibold text-slate-700 mb-1">Question / Prompt</label>
                 <input
                   type="text"
                   required
                   value={newQuestion}
                   onChange={(e) => setNewQuestion(e.target.value)}
                   placeholder="e.g. What is WAL in PostgreSQL?"
-                  className="w-full px-3 py-2 rounded-lg bg-slate-900 border border-slate-700 text-slate-100"
+                  className="w-full px-3 py-2 rounded-xl bg-white border border-slate-200 text-slate-900 focus:outline-none focus:border-[#24389c]"
                 />
               </div>
               <div>
-                <label className="block text-[11px] text-slate-400 mb-1">Reference Answer</label>
+                <label className="block text-[11px] font-semibold text-slate-700 mb-1">Reference Answer</label>
                 <input
                   type="text"
                   required
                   value={newAnswer}
                   onChange={(e) => setNewAnswer(e.target.value)}
                   placeholder="e.g. Write-Ahead Logging ensures ACID durability."
-                  className="w-full px-3 py-2 rounded-lg bg-slate-900 border border-slate-700 text-slate-100"
+                  className="w-full px-3 py-2 rounded-xl bg-white border border-slate-200 text-slate-900 focus:outline-none focus:border-[#24389c]"
                 />
               </div>
             </div>
 
             <div>
-              <label className="block text-[11px] text-slate-400 mb-1">Explanation / Insight (Optional)</label>
+              <label className="block text-[11px] font-semibold text-slate-700 mb-1">Explanation / Insight (Optional)</label>
               <input
                 type="text"
                 value={newExplanation}
                 onChange={(e) => setNewExplanation(e.target.value)}
                 placeholder="Brief memory trick or context..."
-                className="w-full px-3 py-2 rounded-lg bg-slate-900 border border-slate-700 text-slate-100"
+                className="w-full px-3 py-2 rounded-xl bg-white border border-slate-200 text-slate-900 focus:outline-none focus:border-[#24389c]"
               />
             </div>
 
             <div className="flex justify-end gap-2 pt-1">
               <button
                 type="submit"
-                className="px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-semibold text-xs flex items-center gap-1.5"
+                className="px-4 py-2 rounded-xl bg-[#24389c] hover:bg-[#1a2a7a] text-white font-semibold text-xs flex items-center gap-1.5 cursor-pointer shadow-xs"
               >
                 <Save className="w-3.5 h-3.5" />
                 <span>Save Card</span>
@@ -207,28 +207,28 @@ export const DeckDetailModal: React.FC<DeckDetailModalProps> = ({
             filteredCards.map((card, idx) => (
               <div
                 key={card.id}
-                className="p-4 rounded-2xl bg-slate-800/60 border border-slate-700/60 hover:border-slate-600 transition-all flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs"
+                className="p-4 rounded-2xl bg-slate-50 border border-slate-200/80 hover:border-slate-300 transition-all flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs"
               >
                 <div className="space-y-1 max-w-2xl">
                   <div className="flex items-center gap-2">
-                    <span className="font-mono text-[10px] text-slate-500">#{idx + 1}</span>
-                    <span className="text-[10px] uppercase font-bold px-2 py-0.5 rounded bg-slate-700 text-indigo-300">
+                    <span className="font-mono text-[10px] text-slate-400">#{idx + 1}</span>
+                    <span className="text-[10px] uppercase font-bold px-2 py-0.5 rounded bg-indigo-50 text-[#24389c] border border-indigo-100">
                       {card.type}
                     </span>
-                    <span className="text-[10px] text-slate-400 font-mono">
+                    <span className="text-[10px] text-slate-500 font-mono">
                       Interval: {card.interval}d | Reps: {card.repetitions}
                     </span>
                   </div>
-                  <p className="font-semibold text-slate-200">{card.question}</p>
-                  <p className="text-emerald-400">{card.answer}</p>
+                  <p className="font-semibold text-slate-900">{card.question}</p>
+                  <p className="text-emerald-700 font-medium">{card.answer}</p>
                   {card.explanation && (
-                    <p className="text-[11px] text-slate-400 italic">{card.explanation}</p>
+                    <p className="text-[11px] text-slate-500 italic">{card.explanation}</p>
                   )}
                 </div>
 
                 <button
                   onClick={() => handleDeleteCard(card.id)}
-                  className="p-2 rounded-xl text-rose-400 hover:bg-rose-500/20 transition-colors self-end sm:self-center"
+                  className="p-2 rounded-xl text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition-colors self-end sm:self-center"
                   title="Delete Card"
                 >
                   <Trash2 className="w-4 h-4" />

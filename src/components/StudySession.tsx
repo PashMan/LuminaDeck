@@ -359,7 +359,7 @@ export const StudySession: React.FC<StudySessionProps> = ({ deck, onFinish, onBa
                 }
                 className={`p-2 rounded-xl border transition-colors ${
                   isSpeaking
-                    ? 'bg-amber-100 text-amber-800 border-amber-300 animate-pulse'
+                    ? 'bg-indigo-100 text-[#24389c] border-indigo-300 animate-pulse'
                     : 'bg-slate-50 text-slate-600 hover:text-slate-900 border-slate-200'
                 }`}
                 title="Listen to card audio"
@@ -373,7 +373,7 @@ export const StudySession: React.FC<StudySessionProps> = ({ deck, onFinish, onBa
                 className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-indigo-50 hover:bg-indigo-100 border border-indigo-100 text-[#24389c] text-xs font-semibold transition-colors"
                 title="Explain Like I'm 5"
               >
-                <Lightbulb className="w-3.5 h-3.5 text-amber-500" />
+                <Lightbulb className="w-3.5 h-3.5 text-[#24389c]" />
                 <span className="hidden sm:inline">AI Explain</span>
               </button>
             </div>
@@ -596,32 +596,32 @@ export const StudySession: React.FC<StudySessionProps> = ({ deck, onFinish, onBa
 
       {/* AI ELI5 Explanation Modal Popover */}
       {showExplanationModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-sm">
-          <div className="relative w-full max-w-lg bg-slate-900 border border-slate-700 rounded-3xl p-6 shadow-2xl text-slate-100">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs">
+          <div className="relative w-full max-w-lg bg-white border border-slate-200/80 rounded-3xl p-6 shadow-xl text-slate-900">
             <button
               onClick={() => setShowExplanationModal(false)}
-              className="absolute top-4 right-4 p-2 text-slate-400 hover:text-white"
+              className="absolute top-4 right-4 p-2 text-slate-400 hover:text-slate-900 hover:bg-slate-100 rounded-xl transition-colors"
             >
               ✕
             </button>
 
             <div className="flex items-center gap-3 mb-4">
-              <div className="p-2.5 rounded-xl bg-purple-500/20 text-purple-300">
-                <Lightbulb className="w-5 h-5 text-yellow-300" />
+              <div className="p-2.5 rounded-xl bg-indigo-50 border border-indigo-100 text-[#24389c]">
+                <Lightbulb className="w-5 h-5 text-[#24389c]" />
               </div>
               <div>
-                <h4 className="font-bold text-base text-white">AI ELI5 Tutor Explanation</h4>
-                <p className="text-xs text-slate-400">Deep intuitive breakdown & mnemonic</p>
+                <h4 className="font-bold text-base text-slate-900">AI ELI5 Tutor Explanation</h4>
+                <p className="text-xs text-slate-500">Deep intuitive breakdown & mnemonic</p>
               </div>
             </div>
 
             {isExplaining ? (
-              <div className="py-12 text-center text-slate-400 space-y-3">
-                <Loader2 className="w-8 h-8 animate-spin mx-auto text-indigo-400" />
+              <div className="py-12 text-center text-slate-500 space-y-3">
+                <Loader2 className="w-8 h-8 animate-spin mx-auto text-[#24389c]" />
                 <p className="text-xs">Generating real-world analogy and memory trick...</p>
               </div>
             ) : (
-              <div className="max-h-[350px] overflow-y-auto text-xs leading-relaxed space-y-3 text-slate-200 whitespace-pre-wrap p-3 bg-slate-950 rounded-2xl border border-slate-800">
+              <div className="max-h-[350px] overflow-y-auto text-xs leading-relaxed space-y-3 text-slate-800 whitespace-pre-wrap p-4 bg-slate-50 rounded-2xl border border-slate-200">
                 {aiExplanationText}
               </div>
             )}

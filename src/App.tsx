@@ -142,7 +142,7 @@ export default function App() {
   // If in active study session, render StudySession
   if (activeStudyDeck) {
     return (
-      <div className="min-h-screen bg-slate-950 text-slate-100">
+      <div className="min-h-screen bg-[#f8fafc] text-slate-900 font-sans selection:bg-[#24389c] selection:text-white">
         <StudySession
           deck={activeStudyDeck}
           onFinish={handleFinishStudySession}
@@ -153,7 +153,7 @@ export default function App() {
   }
 
   return (
-    <div className="min-h-screen bg-[#fcf9f8] text-slate-900 flex flex-col font-sans selection:bg-[#24389c] selection:text-white">
+    <div className="min-h-screen bg-[#f8fafc] text-slate-900 flex flex-col font-sans selection:bg-[#24389c] selection:text-white">
       
       {/* Top Navbar */}
       <Navbar

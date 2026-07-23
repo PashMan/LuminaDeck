@@ -170,11 +170,7 @@ export const DeckCard: React.FC<DeckCardProps> = ({
           <button
             id={`btn_study_deck_${deck.id}`}
             onClick={() => onStudy(deck)}
-            className={`flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-semibold transition-all cursor-pointer shadow-xs hover:-translate-y-0.5 ${
-              dueCards.length > 0
-                ? 'bg-amber-500 hover:bg-amber-600 text-white'
-                : 'bg-[#24389c] hover:bg-[#1a2a7a] text-white'
-            }`}
+            className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-semibold bg-[#24389c] hover:bg-[#1a2a7a] text-white transition-all cursor-pointer shadow-xs hover:-translate-y-0.5"
           >
             <Play className="w-3.5 h-3.5 fill-current" />
             <span>{dueCards.length > 0 ? 'Review Due' : 'Study Deck'}</span>

@@ -20,7 +20,7 @@ export const Navbar: React.FC<NavbarProps> = ({
   onOpenShortcuts,
 }) => {
   return (
-    <header id="app_header" className="sticky top-0 z-30 bg-[#fcf9f8]/90 backdrop-blur-md border-b border-slate-200/80 text-slate-900 shadow-xs">
+    <header id="app_header" className="sticky top-0 z-30 bg-[#f8fafc]/90 backdrop-blur-md border-b border-slate-200/80 text-slate-900 shadow-xs">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-4">
         
         {/* Brand Logo */}
@@ -52,7 +52,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                 : 'text-slate-600 hover:text-slate-900 hover:bg-slate-200/50'
             }`}
           >
-            <Layers className="w-4 h-4 text-[#3f51b5]" />
+            <Layers className="w-4 h-4 text-[#24389c]" />
             <span>Decks</span>
           </button>
 
@@ -65,7 +65,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                 : 'text-slate-600 hover:text-slate-900 hover:bg-slate-200/50'
             }`}
           >
-            <BarChart2 className="w-4 h-4 text-emerald-600" />
+            <BarChart2 className="w-4 h-4 text-[#24389c]" />
             <span>Analytics</span>
           </button>
 
@@ -78,7 +78,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                 : 'text-slate-600 hover:text-slate-900 hover:bg-slate-200/50'
             }`}
           >
-            <Download className="w-4 h-4 text-amber-600" />
+            <Download className="w-4 h-4 text-[#24389c]" />
             <span className="hidden sm:inline">Anki Export</span>
           </button>
         </nav>
