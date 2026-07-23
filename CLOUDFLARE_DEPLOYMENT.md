@@ -19,7 +19,7 @@
    - `generate-cards.ts` (`/api/generate-cards`) — Генерация Anki-карточек через Gemini AI
    - `evaluate-answer.ts` (`/api/evaluate-answer`) — ИИ-оценка семантики ответов
    - `explain-card.ts` (`/api/explain-card`) — Персональный ИИ-репетитор (ELI5 + мнемоника)
-2. `wrangler.toml` — Указана команда сборки `command = "npm run build:cf"`
+2. `wrangler.toml` — Чистый конфигурационный файл Cloudflare Pages (`pages_build_output_dir = "dist"`)
 3. `public/_routes.json` — Настройка проксирования маршрутов `/api/*`
 4. `package.json` — Готовые скрипты:
    - `npm run build:cf` — Сборка фронтенда Vite в дистрибутив `dist`
