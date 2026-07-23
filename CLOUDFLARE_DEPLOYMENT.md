@@ -1,37 +1,37 @@
-# Исправление ошибки загрузки стилей и скриптов в Cloudflare Pages
+# Исправление ошибки загрузки в Cloudflare Pages
 
-## 🔍 Причина ошибки
-Ошибка `Failed to load module script: Expected a JavaScript module script but the server responded with a MIME type of "text/html"` возникала по двум причинам:
-1. **Необработанный `public/404.html`**: Статический файл `public/404.html` содержал исходный путь `<script src="/src/main.tsx">`, которого не существует после сборки в папке `dist/`. Когда Cloudflare Pages отдавал `404.html` при перезагрузке страниц или маршрутизации, браузер пытался загрузить `/src/main.tsx`, получал от сервера HTML-страницу ошибки 404 вместо JS-кода и выдавал ошибку MIME-типа.
-2. **Кэширование `index.html`**: Без заголовков управления кэшем браузер или CDN Cloudflare запрашивали устаревший файл стилей/скриптов от предыдущей сборки.
-
----
-
-## 🛠️ Что было исправлено:
-1. **Авто-генерация `dist/404.html` из скомпилированного `dist/index.html`**:
-   - Удален сырой `public/404.html`.
-   - В `vite.config.ts` добавлен плагин `cloudflareSpaPlugin`, который после каждой сборки копирует итоговый скомпилированный `dist/index.html` (со всеми верными хэшами JS/CSS бандлов) в `dist/404.html`.
-2. **Настроены правильные заголовки кэширования (`public/_headers`)**:
-   - Для `/index.html` и `/404.html` установлен `Cache-Control: no-cache, no-store, must-revalidate`, чтобы браузер ВСЕГДА загружал актуальную версию приложения.
-   - Для `/assets/*` установлено долговременное кэширование.
-3. **Обновлена версия Node.js (`.nvmrc`)**:
-   - Зафиксирована версия Node.js 22.16.0 для Cloudflare Pages.
+## 🔍 Основные причины, почему сайт не грузился:
+1. **Заголовок `X-Frame-Options: SAMEORIGIN`**: В файле `_headers` был принудительно задан `X-Frame-Options: SAMEORIGIN`. Из-за этого при попытке открыть сайт во фрейме (iframe) или при определенном типе встраивания браузер блокировал загрузку с ошибкой безопасности.
+2. **Маршрутизация Cloudflare Pages (`_redirects`)**: Для полноценной работы Single Page Application (SPA) в Cloudflare Pages необходим файл `public/_redirects` с правилом `/* /index.html 200`. Без этого Cloudflare отдавал 404 на любые подмаршруты и перезагрузки.
+3. **MIME-type ошибка в 404.html**: Ранее статический `404.html` содержал необработанный `<script src="/src/main.tsx">`.
 
 ---
 
-## 🚀 Инструкция для обновления:
+## 🛠️ Что сделано для исправления:
+1. **Удален `X-Frame-Options: SAMEORIGIN` из `public/_headers`**:
+   - Теперь сайт беспрепятственно загружается во всех браузерах и iframe-окружениях.
+2. **Создан `public/_redirects`**:
+   - Добавлено правило `/* /index.html 200`, гарантирующее отдачу `index.html` с кодом ответа `200 OK` для любых путей.
+3. **Авто-генерация `dist/404.html` из собранного `dist/index.html`**:
+   - В `vite.config.ts` работает `cloudflareSpaPlugin`, который копирует скомпилированный HTML со всеми рабочими хэшами JS/CSS бандлов.
+4. **Исправлен синтаксис `index.html`**:
+   - Заменен `className` на валидный HTML атрибут `class`.
 
-### 1️⃣ Запушьте свежие изменения в GitHub:
+---
+
+## 🚀 Как применить исправление:
+
+### 1️⃣ Запушьте изменения в ваш репозиторий GitHub:
 ```bash
 git add .
-git commit -m "Fix Cloudflare Pages SPA 404 routing with compiled index.html and cache headers"
+git commit -m "Fix Cloudflare Pages loading issue, frame options and SPA redirects"
 git push origin main
 ```
 
-### 2️⃣ Проверьте деплой в Cloudflare:
-Зайдите в **Cloudflare Dashboard** → **Workers & Pages** → **luminadeck** → **Deployments**.
-Дождитесь завершения сборки. В логах сборки появится строка:
-`Successfully copied dist/index.html to dist/404.html for Cloudflare Pages SPA fallback.`
+### 2️⃣ Проверьте автодеплой в Cloudflare Pages:
+В панели Cloudflare Pages дождитесь завершения деплоя. В логах вы увидите:
+- `Parsed 1 valid header rules.`
+- `Successfully copied dist/index.html to dist/404.html`
 
 ### 3️⃣ Откройте сайт:
-Зайдите на **https://luminadeck.pages.dev** (желательно в режиме инкогнито `Ctrl + Shift + N` или через жесткую перезагрузку `Ctrl + F5`).
+Перейдите на **https://luminadeck.pages.dev** (желательно очистив кэш или открыв в режиме инкогнито `Ctrl + Shift + N`).
