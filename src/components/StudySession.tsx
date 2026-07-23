@@ -22,6 +22,7 @@ import {
 import confetti from 'canvas-confetti';
 import { Deck, Flashcard, SM2Rating, AnswerEvaluation } from '../types';
 import { calculateSM2, getNextIntervalText } from '../lib/sm2';
+import { evaluateAnswerClientSide, explainCardClientSide } from '../lib/cardEvaluator';
 
 interface StudySessionProps {
   deck: Deck;
@@ -139,29 +140,20 @@ export const StudySession: React.FC<StudySessionProps> = ({ deck, onFinish, onBa
     window.speechSynthesis.speak(utterance);
   };
 
-  // Evaluate User Answer via AI Endpoint
+  // Evaluate User Answer Client-side
   const handleEvaluateAnswer = async () => {
     if (!currentCard || !userAnswer.trim()) return;
 
     setIsEvaluating(true);
     try {
-      const response = await fetch('/api/evaluate-answer', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          question: currentCard.question,
-          expectedAnswer: currentCard.answer,
-          userAnswer,
-          cardType: currentCard.type,
-          explanation: currentCard.explanation,
-        }),
-      });
-
-      const data = await response.json();
-      if (response.ok && data.success) {
-        setAiEvaluation(data.evaluation);
-        setIsFlipped(true); // flip to show results
-      }
+      const evaluation = evaluateAnswerClientSide(
+        currentCard.question,
+        currentCard.answer,
+        userAnswer,
+        currentCard.type
+      );
+      setAiEvaluation(evaluation as any);
+      setIsFlipped(true); // flip to show results
     } catch (e) {
       console.error('Failed to evaluate answer', e);
     } finally {
@@ -169,7 +161,7 @@ export const StudySession: React.FC<StudySessionProps> = ({ deck, onFinish, onBa
     }
   };
 
-  // Ask AI for ELI5 Explanation
+  // Generate ELI5 Explanation Client-side
   const handleFetchExplanation = async () => {
     if (!currentCard) return;
 
@@ -177,25 +169,15 @@ export const StudySession: React.FC<StudySessionProps> = ({ deck, onFinish, onBa
     setShowExplanationModal(true);
 
     try {
-      const response = await fetch('/api/explain-card', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          question: currentCard.question,
-          answer: currentCard.answer,
-          explanation: currentCard.explanation,
-        }),
-      });
-
-      const data = await response.json();
-      if (response.ok && data.success) {
-        setAiExplanationText(data.explanation);
-      } else {
-        setAiExplanationText('Failed to generate AI explanation.');
-      }
+      const explanationText = explainCardClientSide(
+        currentCard.question,
+        currentCard.answer,
+        currentCard.explanation
+      );
+      setAiExplanationText(explanationText);
     } catch (e) {
       console.error(e);
-      setAiExplanationText('Error loading AI explanation.');
+      setAiExplanationText('Error generating explanation.');
     } finally {
       setIsExplaining(false);
     }

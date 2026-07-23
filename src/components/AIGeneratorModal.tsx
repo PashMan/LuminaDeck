@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Sparkles, X, BookOpen, FileText, Code2, CheckSquare, Layers, AlertCircle, Loader2 } from 'lucide-react';
 import { AIGenerationOptions, CardType, Deck } from '../types';
+import { generateFlashcardsClientSide } from '../lib/cardGenerator';
 
 interface AIGeneratorModalProps {
   isOpen: boolean;
@@ -52,47 +53,29 @@ export const AIGeneratorModal: React.FC<AIGeneratorModalProps> = ({
     }
 
     setIsLoading(true);
-    setLoadingStep('Initializing Gemini 3.6 Flash AI...');
+    setLoadingStep('Extracting concepts & building SM-2 cards...');
 
     try {
-      const stepTimer1 = setTimeout(() => {
-        setLoadingStep('Extracting atomic concepts & key memory hooks...');
-      }, 1200);
+      // Simulate quick smooth UI progress
+      await new Promise((res) => setTimeout(res, 400));
 
-      const stepTimer2 = setTimeout(() => {
-        setLoadingStep('Generating Q&A, Cloze deletions, and Code cards...');
-      }, 2800);
-
-      const response = await fetch('/api/generate-cards', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          title: title || sourceContent.slice(0, 40),
-          sourceType,
-          sourceContent,
-          cardCount,
-          cardTypes,
-          difficulty,
-          targetLanguage,
-        }),
+      const result = generateFlashcardsClientSide({
+        title: title || sourceContent.slice(0, 40),
+        sourceType,
+        sourceContent,
+        cardCount,
+        cardTypes,
+        difficulty,
+        targetLanguage,
       });
-
-      clearTimeout(stepTimer1);
-      clearTimeout(stepTimer2);
-
-      const data = await response.json();
-
-      if (!response.ok || !data.success) {
-        throw new Error(data.details || data.error || 'Failed to generate flashcards');
-      }
 
       onSuccess(
         {
-          title: data.deckTitle || title || 'AI Generated Deck',
-          description: data.deckDescription || 'Generated using MemPulse AI',
-          tags: data.tags || ['AI'],
+          title: targetExistingDeck ? targetExistingDeck.title : (result.deckTitle || title || 'New Flashcard Deck'),
+          description: result.deckDescription,
+          tags: result.tags,
         },
-        data.cards || []
+        result.cards || []
       );
 
       onClose();
