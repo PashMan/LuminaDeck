@@ -24,7 +24,7 @@ export const PricingModal: React.FC<PricingModalProps> = ({ isOpen, onClose }) =
         {/* Header */}
         <div className="text-center max-w-lg mx-auto mb-8 space-y-2">
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-indigo-50 border border-indigo-100 text-[#24389c] text-xs font-semibold">
-            <Crown className="w-3.5 h-3.5 text-amber-500" />
+            <Crown className="w-3.5 h-3.5 text-[#24389c]" />
             <span>MemPulse Pro Startup Plan</span>
           </div>
           <h2 className="text-2xl sm:text-3xl font-extrabold text-slate-900">

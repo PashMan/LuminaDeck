@@ -55,8 +55,8 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({ decks, s
             <h3 className="text-xs font-semibold uppercase tracking-wider text-slate-500">
               Current Streak
             </h3>
-            <div className="w-8 h-8 rounded-lg bg-amber-50 border border-amber-200 flex items-center justify-center text-amber-500">
-              <Flame className="w-5 h-5 fill-amber-500" />
+            <div className="w-8 h-8 rounded-lg bg-indigo-50 border border-indigo-100 flex items-center justify-center text-[#24389c]">
+              <Flame className="w-5 h-5 fill-current" />
             </div>
           </div>
           <div>
