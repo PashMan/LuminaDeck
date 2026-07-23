@@ -1,60 +1,49 @@
-# Инструкция по деплою на Cloudflare Pages & Workers
+# Инструкция по деплою LuminaDeck на Cloudflare Pages
 
-Проект полностью оптимизирован и подготовлен для успешного деплоя на платформу **Cloudflare Pages** с бессерверными Edge-функциями **Cloudflare Workers Functions** (`/functions/api`).
-
----
-
-## 🛠 Важно: исправление ошибки сборки ("Could not resolve @google/genai")
-
-Функции в папке `/functions/api` переведены на **нативный fetch к Gemini REST API** без внешних npm-зависимостей (`0 dependencies`):
-1. Больше нет ошибок сборки Wrangler / esbuild при компиляции Edge Workers.
-2. Бессерверные функции работают с минимальным оверхедом и молниеносным холодным стартом.
+Проект полностью переведен в режим **Client-Side Single Page Application (SPA)**.
+Все функции создания карточек, генерации и оценки ответов работают прямо в браузере без серверов, поэтому сайт летает и не требует настройки API-ключей на стороне Cloudflare!
 
 ---
 
-## 📁 Структура Cloudflare файлов в репозитории
+## 🛠️ Что нужно сделать, чтобы сайт заработал:
 
-1. `functions/api/` — нативные Edge Functions:
-   - `health.ts` (`/api/health`) — Проверка статуса API и ключей
-   - `generate-cards.ts` (`/api/generate-cards`) — Генерация Anki-карточек через Gemini AI
-   - `evaluate-answer.ts` (`/api/evaluate-answer`) — ИИ-оценка семантики ответов
-   - `explain-card.ts` (`/api/explain-card`) — Персональный ИИ-репетитор (ELI5 + мнемоника)
-2. `wrangler.toml` — Чистый конфигурационный файл Cloudflare Pages (`pages_build_output_dir = "dist"`)
-3. `public/_routes.json` — Настройка проксирования маршрутов `/api/*`
-4. `package.json` — Готовые скрипты:
-   - `npm run build:cf` — Сборка фронтенда Vite в дистрибутив `dist`
-   - `npm run deploy:cf` — Деплой в Cloudflare через Wrangler
-   - `npm run preview:cf` — Локальное тестирование эмулятора Cloudflare Pages
+### 1️⃣ Запушьте свежий код в GitHub
+Cloudflare Pages запускает сборку только после нового коммита в ветку `main`.
+Если вы внесли изменения здесь, отправьте их на GitHub:
+```bash
+git add .
+git commit -m "Fix SPA deployment for Cloudflare Pages"
+git push origin main
+```
 
 ---
 
-## ⚙️ Настройки в Cloudflare Dashboard (для подключения через GitHub)
-
-Если вы деплоите проект через интеграцию с GitHub:
-
-1. В разделе **Build settings** установите:
-   - **Framework preset**: `Vite` (или `None`)
-   - **Build command**: `npm run build:cf`
-   - **Build output directory**: `dist`
-2. В разделе **Settings** -> **Environment variables** (Production / Preview):
-   - Добавьте переменную `GEMINI_API_KEY` со значением вашего API ключа Google Gemini.
-3. Перезапустите деплой (Retry deployment) — все функции и фронтенд соберутся автоматически!
+### 2️⃣ Проверьте логи сборки в Cloudflare
+1. Откройте **Cloudflare Dashboard** → **Workers & Pages** → **luminadeck**.
+2. Перейдите во вкладку **Deployments** (Деплои).
+3. Посмотрите на статус последнего деплоя:
+   - Если горит красная ошибка — нажмите **Retry deployment** (Повторить деплой) или откройте логи, чтобы увидеть, на каком шаге произошла задержка.
+   - После пуша свежего кода запустится новый деплой **Building...** → **Success**.
 
 ---
 
-## 🚀 Деплой через консоль (Wrangler CLI)
+### 3️⃣ Проверьте настройки сборки (Build settings)
+У вас на скриншоте всё указано верно:
+- **Build command**: `npm run build`
+- **Build output directory**: `dist`
+- **Root directory**: *(оставьте пустым)*
 
-1. Авторизация:
-   ```bash
-   npx wrangler login
-   ```
+---
 
-2. Автоматическая сборка и публикация:
-   ```bash
-   npm run deploy:cf
-   ```
+### 4️⃣ Укажите версию Node.js (Рекомендуется)
+Для корректной сборки React 19 и Vite 6 рекомендуется задать версию Node:
+1. В Cloudflare откройте **Settings** → **Variables and secrets**.
+2. Нажмите **Add** (Добавить):
+   - **Variable name**: `NODE_VERSION`
+   - **Value**: `20`
+3. Нажмите **Save**.
 
-3. Установка секретного ключа Gemini:
-   ```bash
-   npx wrangler pages secret put GEMINI_API_KEY
-   ```
+---
+
+### 5️⃣ Очистите кэш браузера
+После успешного деплоя откройте сайт [luminadeck.pages.dev](https://luminadeck.pages.dev) в режиме инкогнито (`Ctrl + Shift + N` или в браузере телефона), чтобы браузер загрузил новую версию сайта без старого кэша.
