@@ -20,10 +20,23 @@ function cloudflareSpaPlugin() {
 
 export default defineConfig(() => {
   return {
+    base: '/',
     plugins: [react(), tailwindcss(), cloudflareSpaPlugin()],
     resolve: {
       alias: {
         '@': path.resolve(__dirname, '.'),
+      },
+    },
+    build: {
+      outDir: 'dist',
+      assetsDir: 'assets',
+      sourcemap: false,
+      rollupOptions: {
+        output: {
+          entryFileNames: `assets/[name]-[hash]-v2.js`,
+          chunkFileNames: `assets/[name]-[hash]-v2.js`,
+          assetFileNames: `assets/[name]-[hash]-v2[extname]`,
+        },
       },
     },
     server: {
