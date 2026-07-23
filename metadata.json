@@ -1,0 +1,6 @@
+{
+  "name": "MemPulse AI - Micro-Learning Engine",
+  "description": "AI-powered flashcard generator and spaced repetition learning platform with semantic answer grading and Anki compatibility.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
