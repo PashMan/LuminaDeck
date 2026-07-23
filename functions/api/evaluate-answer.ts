@@ -1,5 +1,3 @@
-import { GoogleGenAI, Type } from "@google/genai";
-
 interface Env {
   GEMINI_API_KEY: string;
 }
@@ -25,15 +23,6 @@ export const onRequestPost = async (context: any) => {
       );
     }
 
-    const ai = new GoogleGenAI({
-      apiKey,
-      httpOptions: {
-        headers: {
-          "User-Agent": "aistudio-build",
-        },
-      },
-    });
-
     const prompt = `
 You are an intelligent educational grading agent for spaced repetition flashcards.
 Evaluate the user's answer semantically against the reference answer. Do NOT insist on exact word-for-word string match. Focus on conceptual understanding, key technical terms, and correctness.
@@ -57,29 +46,46 @@ EVALUATION CRITERIA:
 Return a JSON object matching the requested schema.
 `;
 
-    const response = await ai.models.generateContent({
-      model: "gemini-3.6-flash",
-      contents: prompt,
-      config: {
-        responseMimeType: "application/json",
-        responseSchema: {
-          type: Type.OBJECT,
-          properties: {
-            score: { type: Type.INTEGER, description: "0 to 100 percentage score" },
-            isCorrect: { type: Type.BOOLEAN, description: "true if user answer is acceptable" },
-            sm2Rating: { type: Type.INTEGER, description: "1 (Again), 2 (Hard), 3 (Good), 4 (Easy)" },
-            ratingLabel: { type: Type.STRING, description: "Again, Hard, Good, or Easy" },
-            feedback: { type: Type.STRING, description: "Short supportive, informative feedback" },
-            keyPointsCovered: { type: Type.ARRAY, items: { type: Type.STRING } },
-            missingPoints: { type: Type.ARRAY, items: { type: Type.STRING } },
-            idealPhrasingTip: { type: Type.STRING, description: "Quick tip to remember key term" },
-          },
-          required: ["score", "isCorrect", "sm2Rating", "ratingLabel", "feedback"],
-        },
+    const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`;
+
+    const res = await fetch(geminiUrl, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
       },
+      body: JSON.stringify({
+        contents: [
+          {
+            parts: [{ text: prompt }],
+          },
+        ],
+        generationConfig: {
+          responseMimeType: "application/json",
+          responseSchema: {
+            type: "OBJECT",
+            properties: {
+              score: { type: "INTEGER", description: "0 to 100 percentage score" },
+              isCorrect: { type: "BOOLEAN", description: "true if user answer is acceptable" },
+              sm2Rating: { type: "INTEGER", description: "1 (Again), 2 (Hard), 3 (Good), 4 (Easy)" },
+              ratingLabel: { type: "STRING", description: "Again, Hard, Good, or Easy" },
+              feedback: { type: "STRING", description: "Short supportive, informative feedback" },
+              keyPointsCovered: { type: "ARRAY", items: { type: "STRING" } },
+              missingPoints: { type: "ARRAY", items: { type: "STRING" } },
+              idealPhrasingTip: { type: "STRING", description: "Quick tip to remember key term" },
+            },
+            required: ["score", "isCorrect", "sm2Rating", "ratingLabel", "feedback"],
+          },
+        },
+      }),
     });
 
-    const jsonText = response.text || "{}";
+    if (!res.ok) {
+      const errText = await res.text();
+      throw new Error(`Gemini API error status ${res.status}: ${errText}`);
+    }
+
+    const geminiData: any = await res.json();
+    const jsonText = geminiData?.candidates?.[0]?.content?.parts?.[0]?.text || "{}";
     const result = JSON.parse(jsonText);
 
     return new Response(

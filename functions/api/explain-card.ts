@@ -1,5 +1,3 @@
-import { GoogleGenAI } from "@google/genai";
-
 interface Env {
   GEMINI_API_KEY: string;
 }
@@ -18,15 +16,6 @@ export const onRequestPost = async (context: any) => {
     const body: any = await context.request.json();
     const { question, answer, explanation = "", userQuery = "" } = body;
 
-    const ai = new GoogleGenAI({
-      apiKey,
-      httpOptions: {
-        headers: {
-          "User-Agent": "aistudio-build",
-        },
-      },
-    });
-
     const prompt = `
 You are a friendly, genius tutor explaining a complex concept from a flashcard.
 
@@ -41,13 +30,32 @@ Deliver a response formatted in Markdown with:
 3. 🧠 **Mnemonic or Memory Trick**: A clever rule, acronym, or visualization to never forget this.
 `;
 
-    const response = await ai.models.generateContent({
-      model: "gemini-3.6-flash",
-      contents: prompt,
+    const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`;
+
+    const res = await fetch(geminiUrl, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        contents: [
+          {
+            parts: [{ text: prompt }],
+          },
+        ],
+      }),
     });
 
+    if (!res.ok) {
+      const errText = await res.text();
+      throw new Error(`Gemini API error status ${res.status}: ${errText}`);
+    }
+
+    const geminiData: any = await res.json();
+    const markdownText = geminiData?.candidates?.[0]?.content?.parts?.[0]?.text || "";
+
     return new Response(
-      JSON.stringify({ success: true, explanation: response.text }),
+      JSON.stringify({ success: true, explanation: markdownText }),
       { headers: { "Content-Type": "application/json" } }
     );
   } catch (error: any) {

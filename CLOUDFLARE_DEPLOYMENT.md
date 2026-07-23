@@ -1,62 +1,60 @@
 # Инструкция по деплою на Cloudflare Pages & Workers
 
-Проект полностью подготовлен для развертывания на платформе **Cloudflare Pages** с бессерверными функциями **Cloudflare Workers Functions** (`/functions/api`).
+Проект полностью оптимизирован и подготовлен для успешного деплоя на платформу **Cloudflare Pages** с бессерверными Edge-функциями **Cloudflare Workers Functions** (`/functions/api`).
 
 ---
 
-## 📁 Подготовленные файлы проекта
+## 🛠 Важно: исправление ошибки сборки ("Could not resolve @google/genai")
 
-1. `functions/api/` — функции Cloudflare Workers для бэкенда API:
-   - `health.ts` (`/api/health`) — Проверка работоспособности API
-   - `generate-cards.ts` (`/api/generate-cards`) — Генерация карточек через Gemini AI
-   - `evaluate-answer.ts` (`/api/evaluate-answer`) — ИИ-оценка ответов пользователя
-   - `explain-card.ts` (`/api/explain-card`) — Режим ИИ-репетитора (ELI5 + мнемоника)
-2. `wrangler.toml` — Конфигурация Wrangler CLI для Cloudflare
-3. `public/_routes.json` — Настройка маршрутизации статичных файлов и API функций
-4. `package.json` — Добавлены скрипты:
-   - `npm run build:cf` — Сборка фронтенда для Cloudflare Pages
-   - `npm run deploy:cf` — Автоматический деплой с помощью Wrangler
-   - `npm run preview:cf` — Локальное тестирование в эмуляторе Cloudflare Pages
+Функции в папке `/functions/api` переведены на **нативный fetch к Gemini REST API** без внешних npm-зависимостей (`0 dependencies`):
+1. Больше нет ошибок сборки Wrangler / esbuild при компиляции Edge Workers.
+2. Бессерверные функции работают с минимальным оверхедом и молниеносным холодным стартом.
 
 ---
 
-## 🚀 Вариант 1: Деплой через CLI (Wrangler)
+## 📁 Структура Cloudflare файлов в репозитории
 
-1. Авторизуйтесь в Cloudflare через CLI:
+1. `functions/api/` — нативные Edge Functions:
+   - `health.ts` (`/api/health`) — Проверка статуса API и ключей
+   - `generate-cards.ts` (`/api/generate-cards`) — Генерация Anki-карточек через Gemini AI
+   - `evaluate-answer.ts` (`/api/evaluate-answer`) — ИИ-оценка семантики ответов
+   - `explain-card.ts` (`/api/explain-card`) — Персональный ИИ-репетитор (ELI5 + мнемоника)
+2. `wrangler.toml` — Указана команда сборки `command = "npm run build:cf"`
+3. `public/_routes.json` — Настройка проксирования маршрутов `/api/*`
+4. `package.json` — Готовые скрипты:
+   - `npm run build:cf` — Сборка фронтенда Vite в дистрибутив `dist`
+   - `npm run deploy:cf` — Деплой в Cloudflare через Wrangler
+   - `npm run preview:cf` — Локальное тестирование эмулятора Cloudflare Pages
+
+---
+
+## ⚙️ Настройки в Cloudflare Dashboard (для подключения через GitHub)
+
+Если вы деплоите проект через интеграцию с GitHub:
+
+1. В разделе **Build settings** установите:
+   - **Framework preset**: `Vite` (или `None`)
+   - **Build command**: `npm run build:cf`
+   - **Build output directory**: `dist`
+2. В разделе **Settings** -> **Environment variables** (Production / Preview):
+   - Добавьте переменную `GEMINI_API_KEY` со значением вашего API ключа Google Gemini.
+3. Перезапустите деплой (Retry deployment) — все функции и фронтенд соберутся автоматически!
+
+---
+
+## 🚀 Деплой через консоль (Wrangler CLI)
+
+1. Авторизация:
    ```bash
    npx wrangler login
    ```
 
-2. Соберите и задеплойте проект:
+2. Автоматическая сборка и публикация:
    ```bash
    npm run deploy:cf
    ```
 
-3. Установите секретный ключ `GEMINI_API_KEY` для ваших Cloudflare Functions:
+3. Установка секретного ключа Gemini:
    ```bash
    npx wrangler pages secret put GEMINI_API_KEY
    ```
-   *(Введите ваш API ключ Google Gemini при запросе)*
-
----
-
-## 🌐 Вариант 2: Подключение через GitHub в панели Cloudflare Dashboard
-
-1. Зайдите в [Cloudflare Dashboard](https://dash.cloudflare.com/) -> **Workers & Pages** -> **Create application** -> **Pages** -> **Connect to Git**.
-2. Выберите ваш репозиторий GitHub.
-3. Укажите настройки сборки:
-   - **Framework preset**: `Vite`
-   - **Build command**: `npm run build:cf`
-   - **Build output directory**: `dist`
-4. Перейдите в **Settings** -> **Environment Variables** -> **Production & Preview** и добавьте переменную:
-   - **Variable name**: `GEMINI_API_KEY`
-   - **Value**: `ваш_ключ_gemini`
-5. Нажмите **Save and Deploy**.
-
----
-
-## ⚡ Проверка работы
-
-После деплоя ваше приложение будет доступно по адресу `https://<ваше-имя>.pages.dev`:
-- Фронтенд работает как молниеносная SPA на глобальном CDN Cloudflare.
-- API запросы на `/api/*` обрабатываются бессерверными функциями Cloudflare Workers Edge Network в ближайшем к пользователю дата-центре.

@@ -1,5 +1,3 @@
-import { GoogleGenAI, Type } from "@google/genai";
-
 interface Env {
   GEMINI_API_KEY: string;
 }
@@ -33,15 +31,6 @@ export const onRequestPost = async (context: any) => {
       );
     }
 
-    const ai = new GoogleGenAI({
-      apiKey,
-      httpOptions: {
-        headers: {
-          "User-Agent": "aistudio-build",
-        },
-      },
-    });
-
     const prompt = `
 You are an expert educational instructional designer and Anki flashcard engineer.
 Your task is to take the following learning source material and break it down into atomic, high-retention interactive flashcards using spaced repetition best practices.
@@ -71,65 +60,82 @@ ${sourceContent.slice(0, 15000)}
 Return a JSON object containing the deck title, deck description, tags, and an array of generated cards.
 `;
 
-    const response = await ai.models.generateContent({
-      model: "gemini-3.6-flash",
-      contents: prompt,
-      config: {
-        responseMimeType: "application/json",
-        responseSchema: {
-          type: Type.OBJECT,
-          properties: {
-            deckTitle: { type: Type.STRING, description: "Clear descriptive deck title" },
-            deckDescription: { type: Type.STRING, description: "Short summary of what this deck covers" },
-            tags: {
-              type: Type.ARRAY,
-              items: { type: Type.STRING },
-              description: "Primary topic tags",
-            },
-            cards: {
-              type: Type.ARRAY,
-              items: {
-                type: Type.OBJECT,
-                properties: {
-                  type: {
-                    type: Type.STRING,
-                    description: "One of 'qa', 'cloze', 'code', or 'mcq'",
+    const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`;
+
+    const res = await fetch(geminiUrl, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        contents: [
+          {
+            parts: [{ text: prompt }],
+          },
+        ],
+        generationConfig: {
+          responseMimeType: "application/json",
+          responseSchema: {
+            type: "OBJECT",
+            properties: {
+              deckTitle: { type: "STRING", description: "Clear descriptive deck title" },
+              deckDescription: { type: "STRING", description: "Short summary of what this deck covers" },
+              tags: {
+                type: "ARRAY",
+                items: { type: "STRING" },
+                description: "Primary topic tags",
+              },
+              cards: {
+                type: "ARRAY",
+                items: {
+                  type: "OBJECT",
+                  properties: {
+                    type: {
+                      type: "STRING",
+                      description: "One of 'qa', 'cloze', 'code', or 'mcq'",
+                    },
+                    question: { type: "STRING", description: "The flashcard prompt or question" },
+                    answer: { type: "STRING", description: "The exact reference answer" },
+                    explanation: { type: "STRING", description: "Brief intuitive explanation or mnemonic" },
+                    clozeText: {
+                      type: "STRING",
+                      description: "For cloze cards: full text with {{c1::cloze term}} markers",
+                    },
+                    codeSnippet: {
+                      type: "STRING",
+                      description: "Optional code block in markdown or code format",
+                    },
+                    options: {
+                      type: "ARRAY",
+                      items: { type: "STRING" },
+                      description: "For MCQ cards: 4 choices",
+                    },
+                    correctOptionIndex: {
+                      type: "INTEGER",
+                      description: "For MCQ: 0-based index of correct option",
+                    },
+                    tags: {
+                      type: "ARRAY",
+                      items: { type: "STRING" },
+                    },
                   },
-                  question: { type: Type.STRING, description: "The flashcard prompt or question" },
-                  answer: { type: Type.STRING, description: "The exact reference answer" },
-                  explanation: { type: Type.STRING, description: "Brief intuitive explanation or mnemonic" },
-                  clozeText: {
-                    type: Type.STRING,
-                    description: "For cloze cards: full text with {{c1::cloze term}} markers",
-                  },
-                  codeSnippet: {
-                    type: Type.STRING,
-                    description: "Optional code block in markdown or code format",
-                  },
-                  options: {
-                    type: Type.ARRAY,
-                    items: { type: Type.STRING },
-                    description: "For MCQ cards: 4 choices",
-                  },
-                  correctOptionIndex: {
-                    type: Type.INTEGER,
-                    description: "For MCQ: 0-based index of correct option",
-                  },
-                  tags: {
-                    type: Type.ARRAY,
-                    items: { type: Type.STRING },
-                  },
+                  required: ["type", "question", "answer", "explanation"],
                 },
-                required: ["type", "question", "answer", "explanation"],
               },
             },
+            required: ["deckTitle", "deckDescription", "cards"],
           },
-          required: ["deckTitle", "deckDescription", "cards"],
         },
-      },
+      }),
     });
 
-    const jsonText = response.text || "{}";
+    if (!res.ok) {
+      const errText = await res.text();
+      throw new Error(`Gemini API error status ${res.status}: ${errText}`);
+    }
+
+    const geminiData: any = await res.json();
+    const jsonText = geminiData?.candidates?.[0]?.content?.parts?.[0]?.text || "{}";
     const data = JSON.parse(jsonText);
 
     return new Response(
