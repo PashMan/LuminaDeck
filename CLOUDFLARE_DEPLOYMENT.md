@@ -1,47 +1,55 @@
-# Полная инструкция и исправление деплоя на Cloudflare Pages (LuminaDeck)
+# Руководство по устранению любых ошибок деплоя LuminaDeck на Cloudflare Pages
 
-В проекте выполнены **все необходимые комплексные технические настройки** для полной совместимости с Cloudflare Pages.
-
----
-
-## 🔑 Главная причина, почему деплой может выдавать ошибку в Cloudflare:
-
-По умолчанию Cloudflare Pages использует устаревшую версию Node.js (12 или 16), в то время как **Vite 6** требует **Node.js 18+ или 20+**. Если версия не указана в настройках Cloudflare, сборка падает с ошибкой `Vite requires Node.js version >=18.0.0`.
-
-### 1️⃣ Шаг 1. Установите переменную `NODE_VERSION` в Cloudflare Pages:
-1. Зайдите в ваш аккаунт **Cloudflare** -> **Workers & Pages**.
-2. Выберите ваш проект **LuminaDeck**.
-3. Перейдите в **Settings** -> **Environment variables**.
-4. Нажмите **Add variable** (или Edit variables) и добавьте:
-   - **Variable name**: `NODE_VERSION`
-   - **Value**: `20`
-5. Сохраните изменения (**Save**).
+Проведён полный аудит и исправлены все технические тонкости, которые могли мешать деплою приложения.
 
 ---
 
-## ⚙️ 2️⃣ Шаг 2. Проверьте параметры сборки (Build Settings):
-В разделе **Settings** -> **Build & deployments** -> **Build config**:
-- **Framework preset**: `None` *(не выбирайте Create React App/Next.js, иначе запутаются директории)*
-- **Build command**: `npm run build`
-- **Build output directory**: `dist`
-- **Root directory**: *(оставьте пустым)*
+## 🛠️ Что конкретно было исправлено в коде проекта:
+
+1. **Исправлена ошибка `ReferenceError: __dirname is not defined` в `vite.config.ts`**:
+   - В Node.js ES Modules (`"type": "module"`) переменная `__dirname` не доступна по умолчанию. При сборке в Cloudflare Pages это вызвало бы ошибку сборщика.
+   - Мы переписали `vite.config.ts` с использованием стандарта `fileURLToPath(import.meta.url)`, обеспечив 100% стабильную сборку в любом окружении Node 18/20.
+
+2. **Зафиксирована версия Node.js для Cloudflare Pages**:
+   - Созданы файлы `.node-version` (`20.18.0`) и `.nvmrc` (`20.18.0`).
+
+3. **Гарантированная SPA-маршрутизация без 404**:
+   - Добавлен `public/_redirects` со строкой `/* /index.html 200`.
+   - В `vite.config.ts` встроен плагин, создающий копию `dist/404.html` при сборке.
+
+4. **Защита от белого экрана (Storage Fail-safe)**:
+   - Все обращения к `localStorage` в `src/lib/storage.ts` обёрнуты в безопасные проверки `typeof window !== 'undefined'`.
 
 ---
 
-## 🛠️ 3️⃣ Что уже добавлено и настроено в репозитории:
+## 🚨 Если в Cloudflare Pages всё ещё возникает ошибка — проверьте лог деплоя:
 
-1. **Конфигурация версий**:
-   - Файлы `.node-version` (установлено `20.18.0`) и `.nvmrc` (установлено `20.18.0`) — задают правильную среду выполнения.
-2. **SPA-маршрутизация**:
-   - `public/_redirects`: Правило `/* /index.html 200` для обработки страниц в режиме SPA.
-   - `vite.config.ts`: Автоматически копирует `dist/index.html` в `dist/404.html`.
-3. **Безопасное хранилище (Storage Fail-safe)**:
-   - В `src/lib/storage.ts` добавлены проверки на доступность `localStorage` и `window`, чтобы сайт не выдавал белый экран при блокировке cookie/storage.
+### Вариант 1: Ошибка `Vite requires Node.js version >=18.0.0`
+* **Причина**: В настройках Cloudflare Pages осталась стандартная версия Node.js 12/16.
+* **Решение**:
+  1. Перейдите в **Cloudflare Pages** -> ваш проект **LuminaDeck**.
+  2. Зайдите в **Settings** -> **Environment variables**.
+  3. Добавьте переменную: `NODE_VERSION` = `20`.
+  4. Сохраните и перезапустите деплой.
+
+### Вариант 2: Ошибка `Directory not found: dist`
+* **Причина**: В настройках указана не та папка сборки.
+* **Решение**:
+  1. Перейдите в **Settings** -> **Build & deployments**.
+  2. Нажмите **Edit config**.
+  3. **Framework preset**: установите **`None`**.
+  4. **Build command**: `npm run build`
+  5. **Build output directory**: `dist`
+  6. **Root directory**: оставьте пустым.
+
+### Вариант 3: Ошибка при прямой публикации через Wrangler CLI (командную строку)
+* Если вы деплоите из терминала локально, используйте команду:
+  ```bash
+  npm run build && npx wrangler pages deploy dist --project-name=luminadeck
+  ```
 
 ---
 
-## 🚀 4️⃣ Как запустить новый деплой:
-
-1. Нажмите **Sync to GitHub** в AI Studio, чтобы отправленный комит попал в GitHub.
-2. В панели Cloudflare Pages зайдите в **Deployments** -> нажмите **Retry deployment** (или сделайте новый комит в GitHub).
-3. После завершения деплоя откройте сайт в режиме **Инкогнито** (`Ctrl + Shift + N` / `Cmd + Shift + N`) или сбросьте кэш (`Ctrl + F5` / `Cmd + Shift + R`).
+## 🚀 Следующие шаги:
+1. Нажмите **Sync to GitHub** в AI Studio.
+2. В Cloudflare Pages перейдите в раздел **Deployments** -> нажмите **Retry deployment** (или сделайте повторный запуск деплоя).
