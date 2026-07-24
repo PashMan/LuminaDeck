@@ -1,32 +1,32 @@
-# Исправление деплоя Cloudflare Pages и синхронизации GitHub
+# Решение проблемы деплоя в Cloudflare Pages
 
-## 💡 В чем заключалась проблема с синхронизацией и деплоем:
+## 🔍 Разбор ошибки `Infinite loop detected in this rule`
 
-1. **Почему в панели AI Studio было "No changes to commit"?**
-   - В AI Studio изменения файлов отправляются в Git только после того, как агент вносит реальные правки в код. Если изменений не было, плагин GitHub показывает *"No changes to commit"*, и новый комит на GitHub **не отправлялся**.
-   - Cloudflare Pages видит, что новых комитов в ветке `main` нет, поэтому повторно пересобирает **один и тот же старый комит `55df140`**.
-   - Из-за этого Cloudflare писал: `Uploaded 0 files (4 already uploaded)` — так как файлы с такими хэшами уже лежали на серверах Cloudflare CDN.
+В логах сборки Cloudflare Pages появилось следующее предупреждение:
+```
+Parsed 0 valid redirect rules.
+Found invalid redirect lines:
+  - #1: /*  /index.html  200
+    Infinite loop detected in this rule and has been ignored.
+```
 
-2. **Почему не работали маршруты при обновлении страницы (SPA Routing)?**
-   - Для работы SPA (Single Page Application) в Cloudflare Pages необходим файл правила перенаправления `_redirects` в папке `/public/_redirects`.
-   - Сейчас файл `/public/_redirects` **создан с содержимым `/* /index.html 200`**.
-   - Теперь при сборке Vite файл попадает в `dist/_redirects`, и Cloudflare корректно перенаправляет все роуты приложения на `index.html` со статусом **200 OK**.
+### Почему это произошло?
+Правило `/* /index.html 200` в файле `_redirects` совпадает с абсолютно любым URL, включая сам `/index.html`. В Cloudflare Pages это вызовет цикличный перенаправление. Cloudflare заблокировал этот файл, из-за чего клиенты при запросах получали сбои в маршрутизации.
+
+### 🛠️ Что исправлено:
+1. **Удален конфликтный файл `/public/_redirects`**.
+2. **Используется официальный механизмов Cloudflare Pages для SPA**:
+   В `vite.config.ts` подключен `cloudflareSpaPlugin()`, который при сборке создаёт копию `dist/index.html` под именем `dist/404.html`.
+   Cloudflare Pages автоматически использует `dist/404.html` как фолбэк для всех роутов SPA без каких-либо `_redirects` и без циклических редиректов!
+3. **Название приложения исправлено на `LuminaDeck`** во всех шапках и метаданных (`metadata.json`).
+4. **Адаптировано верхнее меню (Navbar)**:
+   - Шапка переработана, сделана компактной и адаптивной для мобильных устройств.
+   - Вкладки Decks, Analytics и Export логично структурированы и больше не вылезают за границы экрана на любых разрешениях.
 
 ---
 
-## 🛠️ Что сделано сейчас:
+## 🚀 Как применить правки на GitHub и Cloudflare:
 
-1. **Создан `/public/_redirects`**:
-   `/*  /index.html  200`
-2. **Очищен `vite.config.ts`**:
-   Используются стандартные хэши Vite для ассетов.
-3. **Созданы новые изменения файлов**:
-   Теперь в боковой панели AI Studio (или вкладке Integrations -> GitHub) **появились новые изменения**, готовые к синхронизации с вашей веткой `main` на GitHub!
-
----
-
-## 🚀 Что сделать сейчас:
-
-1. В AI Studio нажмите кнопку **Sync to GitHub** (или сделайте Commit & Push в репозиторий `PashMan/LuminaDeck`).
-2. В результате на GitHub появится новый комит.
-3. Cloudflare Pages автоматически подхватит новый комит, скомпилирует `dist` с обновленным `_redirects` и выгрузит заново все файлы (`Uploaded 4 files`).
+1. Перейдите во вкладку **Integrations -> GitHub** в AI Studio.
+2. Нажмите **Sync to GitHub** (Sync changes to `PashMan/LuminaDeck`).
+3. Cloudflare Pages автоматически выполнит свежую сборку и опубликует рабочее приложение.
