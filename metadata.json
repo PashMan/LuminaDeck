@@ -1,6 +1,6 @@
 {
-  "name": "MemPulse AI - Micro-Learning Engine",
-  "description": "AI-powered flashcard generator and spaced repetition learning platform with semantic answer grading and Anki compatibility.",
+  "name": "LuminaDeck",
+  "description": "Smart Anki Flashcards & Spaced Repetition Platform with SM-2 algorithm.",
   "requestFramePermissions": [],
   "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
 }
