@@ -19,6 +19,10 @@ function cloudflareSpaPlugin() {
 }
 
 export default defineConfig(() => {
+  const buildVersion = process.env.CF_PAGES_COMMIT_SHA
+    ? process.env.CF_PAGES_COMMIT_SHA.slice(0, 8)
+    : Date.now().toString(36);
+
   return {
     base: '/',
     plugins: [react(), tailwindcss(), cloudflareSpaPlugin()],
@@ -31,6 +35,13 @@ export default defineConfig(() => {
       outDir: 'dist',
       assetsDir: 'assets',
       sourcemap: false,
+      rollupOptions: {
+        output: {
+          entryFileNames: `assets/[name]-[hash]-${buildVersion}.js`,
+          chunkFileNames: `assets/[name]-[hash]-${buildVersion}.js`,
+          assetFileNames: `assets/[name]-[hash]-${buildVersion}[extname]`,
+        },
+      },
     },
     server: {
       // HMR is disabled in AI Studio via DISABLE_HMR env var.
