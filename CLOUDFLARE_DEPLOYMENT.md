@@ -1,34 +1,24 @@
-# Причина и окончательное решение проблемы деплоя на Cloudflare Pages
+# Настройка Cloudflare Pages для LuminaDeck
 
-## 🔍 В чём заключается причина сообщения `Uploaded 0 files (4 already uploaded)`:
+## ⚙️ Настройки в панели Cloudflare Pages (Build Settings)
 
-В логах сборки Cloudflare Pages было указано:
-`✨ Success! Uploaded 0 files (4 already uploaded) (0.37 sec)`
+В выпадающем списке пресетов Cloudflare Pages опции "Vite" действительно нет. Установите следующие значения:
 
-Это происходит из-за агрессивного кэширования на серверах Cloudflare CDN:
-1. Когда хеши закомпилированных бандлов JS/CSS оставались прежними (например, `index-BKBsyLqK.js`), Cloudflare Pages **пропускал загрузку обновленных файлов на CDN** и продолжал отдавать пользователю закэшированную версию.
-2. В результате сайт у пользователей в браузере показывал старый или сломанный кэш.
+1. **Framework preset**: Выберите **`None`** (или `Create React App`).
+2. **Build command**: `npm run build`
+3. **Build output directory**: `dist`
+4. **Root directory**: оставьте пустым.
 
----
-
-## 🛠️ Что исправлено в проекте:
-
-1. **Динамическое хеширование бандлов (`vite.config.ts`)**:
-   Добавлена генерация уникального имени ассетов с использованием `buildVersion` (SHA комита Cloudflare или отпечаток времени):
-   `assets/[name]-[hash]-${buildVersion}.js`
-   - Это **гарантирует**, что при каждой сборке Cloudflare Pages определяет все скомпилированные файлы как новые, загружает их заново (`Uploaded 4 files`) и мгновенно сбрасывает CDN-кэш у всех пользователей.
-
-2. **Гарантированный SPA Fallback**:
-   В `vite.config.ts` плагин `cloudflareSpaPlugin()` автоматически подготавливает `dist/404.html` для безупречной работы маршрутизации SPA.
-
-3. **Адаптивная шапка (Navbar)**:
-   Исправлена мобильная навигация, логотип переименован в **LuminaDeck**, все элементы управления сгруппированы и не вылезают за границы экрана.
+> 💡 **Почему это работает:** В корне проекта уже есть конфигурация `wrangler.toml` (`pages_build_output_dir = "dist"`), поэтому Cloudflare автоматически видит папку `dist` и выполняет команду `npm run build`.
 
 ---
 
-## 🚀 Что сделать сейчас:
+## 🚀 Проверка работоспособности:
 
-1. В AI Studio выберите **Sync to GitHub** (или сделайте `git push origin main`).
-2. Cloudflare Pages подхватит новый комит, скомпилирует уникальные имена файлов и напишет `✨ Success! Uploaded 4 files`.
-3. Откройте ваш сайт `https://luminadeck.pages.dev` — всё будет работать быстро и без сбоев.
-
+1. Нажмите **Sync to GitHub** в AI Studio.
+2. В логах Cloudflare отобразится успешный запуск:
+   - `pages_build_output_dir: dist`
+   - `Executing user command: npm run build`
+   - `Successfully copied dist/index.html to dist/404.html`
+   - `Success: Your site was deployed!`
+3. Чтобы сразу увидеть обновлённый сайт без старого кэша браузера/CDN, откройте его в режиме **Инкогнито** (`Ctrl + Shift + N` или `Cmd + Shift + N`) или нажмите `Ctrl + F5` (`Cmd + Shift + R`).
