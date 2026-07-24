@@ -8,6 +8,9 @@ const STORAGE_KEYS = {
 
 export function getInitialDecks(): Deck[] {
   try {
+    if (typeof window === 'undefined' || typeof localStorage === 'undefined') {
+      return SAMPLE_DECKS;
+    }
     const raw = localStorage.getItem(STORAGE_KEYS.DECKS);
     if (!raw) {
       saveDecks(SAMPLE_DECKS);
@@ -27,7 +30,9 @@ export function getInitialDecks(): Deck[] {
 
 export function saveDecks(decks: Deck[]): void {
   try {
-    localStorage.setItem(STORAGE_KEYS.DECKS, JSON.stringify(decks));
+    if (typeof window !== 'undefined' && typeof localStorage !== 'undefined') {
+      localStorage.setItem(STORAGE_KEYS.DECKS, JSON.stringify(decks));
+    }
   } catch (e) {
     console.error('Failed to save decks to localStorage', e);
   }
@@ -43,9 +48,13 @@ export function getInitialStats(): StudyStats {
   };
 
   try {
+    if (typeof window === 'undefined' || typeof localStorage === 'undefined') {
+      return defaultStats;
+    }
     const raw = localStorage.getItem(STORAGE_KEYS.STATS);
     if (!raw) return defaultStats;
-    return JSON.parse(raw);
+    const parsed = JSON.parse(raw);
+    return { ...defaultStats, ...parsed };
   } catch (e) {
     return defaultStats;
   }
@@ -53,7 +62,9 @@ export function getInitialStats(): StudyStats {
 
 export function saveStats(stats: StudyStats): void {
   try {
-    localStorage.setItem(STORAGE_KEYS.STATS, JSON.stringify(stats));
+    if (typeof window !== 'undefined' && typeof localStorage !== 'undefined') {
+      localStorage.setItem(STORAGE_KEYS.STATS, JSON.stringify(stats));
+    }
   } catch (e) {
     console.error('Failed to save stats to localStorage', e);
   }
